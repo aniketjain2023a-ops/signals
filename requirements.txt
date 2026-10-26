@@ -1,0 +1,17 @@
+# Core runtime (tested with Python 3.11 and 3.13, CPU only)
+numpy>=2.0
+scipy>=1.12          # ShortTimeFFT (STFT/iSTFT), Butterworth filters, Welch PSD
+soundfile>=0.12      # WAV / FLAC / MP3 / OGG decoding via libsndfile
+scikit-learn>=1.3    # Random Forest baseline model
+joblib>=1.3          # model persistence
+pandas>=2.0
+matplotlib>=3.7      # figures in the HTML report
+plotly>=5.20         # interactive dashboard charts
+streamlit>=1.50      # dashboard
+
+# Testing
+pytest>=8
+
+# Optional
+# librosa>=0.10     # not required; useful for extra audio features if you extend the project
+# ffmpeg (system package, not pip) is needed only for .m4a uploads

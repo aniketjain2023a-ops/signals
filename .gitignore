@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+env/
+
+# Generated model binaries and training summaries (create with train_model.py)
+models/*
+!models/README.md
+
+# Datasets and recordings – never commit audio
+data/*
+!data/README.md
+*.wav
+*.flac
+*.mp3
+*.m4a
+*.ogg
+
+# Generated outputs
+outputs/*
+!outputs/README.md
+
+# Streamlit secrets / local settings
+.streamlit/secrets.toml
+.DS_Store
