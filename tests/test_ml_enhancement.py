@@ -120,3 +120,15 @@ def test_train_on_wav_dataset_splits_by_speaker(tmp_path):
     assert meta["data_source"] == "dataset"
     assert meta["split"] == "split by speaker folder"
     assert meta["n_validation_recordings"] == 2 and meta["n_train_recordings"] == 4
+
+
+def test_discover_files_spreads_across_speakers(tmp_path):
+    import train_model as tm
+    for spk in ("a", "b", "c"):
+        (tmp_path / spk / "chapter").mkdir(parents=True)
+        for i in range(10):
+            (tmp_path / spk / "chapter" / f"{i}.flac").write_bytes(b"x")
+    picked = tm.discover_files(tmp_path, 6)
+    assert len(picked) == 6
+    assert sorted({tm.group_key(p, tmp_path) for p in picked}) == ["a", "b", "c"]
+    assert len(tm.discover_files(tmp_path, 100)) == 30

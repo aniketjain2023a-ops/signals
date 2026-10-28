@@ -63,8 +63,24 @@ EVAL_SNRS_DB = (0.0, 5.0, 10.0)
 # Data discovery and loading
 # --------------------------------------------------------------------------
 def discover_files(data_dir: Path, max_files: int) -> list[Path]:
+    """Find clean recordings; when capped, pick them round-robin across speaker folders.
+
+    Datasets such as LibriSpeech store each speaker's files together, so simply
+    taking the first ``max_files`` sorted paths would cover only a few speakers.
+    """
     files = sorted(p for p in data_dir.rglob("*") if p.is_file() and p.suffix.lower() in {".wav", ".flac"})
-    return files[:max_files]
+    if len(files) <= max_files:
+        return files
+    by_group: dict[str, list[Path]] = {}
+    for f in files:
+        by_group.setdefault(group_key(f, data_dir), []).append(f)
+    queues = [list(reversed(v)) for v in by_group.values()]
+    picked: list[Path] = []
+    while len(picked) < max_files:
+        for q in queues:
+            if q and len(picked) < max_files:
+                picked.append(q.pop())
+    return sorted(picked)
 
 
 def group_key(path: Path, data_dir: Path) -> str:
