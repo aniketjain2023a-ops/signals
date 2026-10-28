@@ -1,8 +1,10 @@
-# AI-Based Speech Signal Analysis and Noise Reduction
+# SONORA – Intelligent Audio Lab
 
-**Using FFT, Digital Filtering, and Machine Learning** – a Signals and Systems project.
+**AI-Based Speech Signal Analysis and Noise Reduction Using FFT, Digital Filtering, and Machine Learning**
+– a Signals and Systems project.
 
-An interactive Streamlit dashboard that loads a real speech recording and lets you:
+SONORA is a multipage Streamlit dashboard with a dark, data-driven interface. It loads a real speech
+recording and lets you:
 
 1. analyse it in the time domain (waveform, RMS, peak, crest factor);
 2. analyse its spectrum (FFT, dominant frequency, band energy, Welch PSD, STFT spectrogram);
@@ -89,10 +91,18 @@ methods are always available, and the ML panel explains how to train a model.
 | `train_model.py` | Dataset loading, noisy-example generation, speaker/recording-wise split, training, held-out evaluation |
 | `metrics.py` | SNR, segmental SNR, RMSE, correlation, comparison-table rows |
 | `pipeline.py` | One processing run (UI-independent, tested) |
-| `plots.py` | Plotly figures |
 | `report_generator.py` | Self-contained HTML report with Matplotlib figures |
-| `app.py` | The dashboard |
-| `tests/` | 86 unit and integration tests |
+| `app.py` | Dashboard entry point: theme, brand, navigation, sidebar status |
+| `app_state.py` | Session state: uploaded audio, cached analysis, running the pipeline, downloads |
+| `views/` | One module per page (overview, analysis, lab, ml_page, experiments, reports) |
+| `ui.py` | Reusable interface components (cards, pills, tables, empty states, icons) |
+| `plots.py` | Plotly figures in the dashboard's visual style |
+| `assets/` | Stylesheet (`styles.css`) and the SONORA logo |
+| `.streamlit/config.toml` | Theme: colours, fonts (Inter, JetBrains Mono), radii |
+| `tests/` | 87 unit and integration tests |
+
+The interface layer (`app.py`, `app_state.py`, `views/`, `ui.py`, `plots.py`) never processes audio
+itself; it calls the tested modules above.
 
 The uploaded file is processed **in memory**. The original bytes are never modified or saved, and
 M4A decoding uses a temporary directory that is deleted immediately.
@@ -273,31 +283,37 @@ memory stays bounded. With the defaults it takes about 2 minutes on a 4-core lap
 model of about 30 MB. If the folder is empty or missing, the script prints setup instructions and
 exits with an error code.
 
-You can also train from the dashboard (**F · ML pipeline → Train or retrain the model**).
+You can also train from the dashboard (**ML Enhancement → Train or retrain from the dashboard**).
 
 ---
 
 ## Using the dashboard
 
-1. **Upload** a recording in the sidebar (WAV/FLAC/MP3/OGG; M4A with ffmpeg; max 50 MB, first 5 minutes analysed).
-2. Choose the **experiment mode**:
-   * *Simulate noise (controlled experiment)*: your recording is the clean reference and noise is added at the chosen SNR. All metrics are ground truth.
-   * *Process recording as-is (real noise)*: your recording is already noisy. SNR metrics are unavailable unless you also upload a **sample-aligned clean reference**.
-3. Choose the noise level, noise type and seed (simulate mode), the processing method, and the filter cut-off and order.
-4. Press **▶ Process audio**.
-5. Explore the tabs:
+1. **Upload** a recording on the **Overview** page (drag and drop; WAV/FLAC/MP3/OGG, M4A with ffmpeg; max
+   50 MB, first 5 minutes analysed). The file card shows its details, a player, and *Replace file* / *Remove*.
+2. Open **Noise Reduction** and choose the **experiment mode**:
+   * *Simulated*: your recording is the clean reference and noise is added at the chosen SNR. All metrics are ground truth.
+   * *Real*: your recording is already noisy. SNR metrics are unavailable unless you also upload a **sample-aligned clean reference**.
+3. Choose the method, the noise level, type and seed, and the filter cut-off and order. Settings sit in a
+   form, so moving a slider never starts processing.
+4. Press **Run enhancement**. A status panel shows each processing step as it runs.
+5. Use the sidebar to move between pages. Your file, settings and results are kept when you switch pages,
+   and if you change a setting after a run, the results are marked as outdated.
 
-| Tab | Shows |
+| Page | Shows |
 |---|---|
-| A · Overview (top) | File, duration, sample rate, channels, method, ML model status, processing status, preprocessing log |
-| B · Original audio | Player for the untouched upload, waveform, amplitude range, RMS, peak, crest factor, metadata |
-| C · Frequency analysis | FFT spectrum with dominant frequency, spectral centroid, Welch PSD, band-energy distribution, spectrogram (log or linear frequency axis) |
-| D · Noise simulation | Noisy player, waveforms, spectrogram, measured SNR; **Experiment 2** compares 20 / 10 / 0 dB side by side |
-| E · DSP enhancement | Filter frequency response, filter settings, filtered waveform, spectrum and player; spectral subtraction results |
-| F · ML pipeline | Model details, the nine pipeline stages, feature shapes, timing, ML waveform, spectrogram and player; training summary; training buttons |
-| G · Results comparison | Metrics table, SNR-improvement and RMSE charts, stacked waveforms, overlaid spectra, spectrograms, players |
-| H · Download & export | WAVs for every output (and the noisy input), results CSV, HTML report |
-| Applications | Lecture recordings, meetings, voice notes, ASR preprocessing |
+| Overview | Hero, upload card, workflow progress, duration / sampling frequency / dominant frequency / status cards, large waveform |
+| Audio Analysis | Dominant frequency, spectral centroid, RMS level and peak; waveform statistics; FFT spectrum (log or linear axis) with dominant-frequency marker; band-energy distribution; spectrogram; Welch PSD; file metadata |
+| Noise Reduction | Controls; before/after waveform, spectrogram, spectrum and filter response for each output; players for clean, noisy and every enhanced signal; performance comparison table |
+| ML Enhancement | Six-stage pipeline status from the last real inference, model details from the saved model file, inference time and feature shape, ML output, held-out validation table, limitations, training buttons (or a setup guide when no model exists) |
+| Experiments | Demonstration checklist that tracks what you have actually run, the 20 / 10 / 0 dB noise-level comparison, SNR-improvement and RMSE charts, practical applications |
+| Reports | Download center: each enhanced WAV, the noisy test audio, the results CSV and the HTML report, with real filenames and sizes (unavailable items are shown disabled with the reason) |
+
+The sidebar also shows live system status: application, DSP engine and ML model.
+
+In the comparison table, **BEST** marks the top enhancement method for a metric. It appears only for
+metrics that need a clean reference, and only when that reference exists. Correlation and segmental
+SNR are included in the CSV and the report.
 
 Exported WAVs are 16-bit PCM at the processing rate (16 kHz by default). A signal whose peak exceeds
 0.99 is **scaled down**, never hard-clipped. Open the HTML report in a browser and use *Print → Save as
@@ -337,19 +353,19 @@ if possible.
 
 | # | Experiment | Steps | What to point out |
 |---|---|---|---|
-| 1 | Original speech analysis | Upload → tabs B and C | Waveform pauses vs. syllables; FFT peak (pitch or formant); energy concentrated below 4 kHz; harmonics in the spectrogram |
-| 2 | Noise simulation | Tab D → *Experiment 2* | Measured SNR equals the target; at 0 dB noise power equals speech power; the noise fills the whole spectrogram |
-| 3 | DSP noise reduction | Method *Compare all*, 10 dB → Process → tab E | Filter response and −3 dB point; low-pass removes the hiss above fc but dulls "s" sounds; spectral subtraction keeps the full band but adds musical noise |
-| 4 | ML enhancement | Tab F | The nine stages, feature shape (frames × 192) and mask shape (frames × 32); listen and compare with DSP; mention the training data and the held-out validation table |
-| 5 | Quantitative evaluation | Tab G (try 20, 10 and 0 dB) | Input SNR, output SNR, improvement, RMSE, correlation; which method wins depends on the SNR; download the CSV and report |
-| 6 | Practical application | Applications tab; real mode with a noisy phone recording | Without a clean reference only statistics are measurable, so judge by ear and by spectrogram |
+| 1 | Original speech analysis | Upload on Overview → Audio Analysis | Waveform pauses vs. syllables; FFT peak (pitch or formant); energy concentrated below 4 kHz; harmonics in the spectrogram |
+| 2 | Noise simulation | Experiments → *Run noise-level comparison* | Measured SNR equals the target; at 0 dB noise power equals speech power; the noise fills the whole spectrogram |
+| 3 | DSP noise reduction | Noise Reduction → *Compare all methods*, 10 dB → Run → Before/after tabs | Filter response and −3 dB point; low-pass removes the hiss above fc but dulls "s" sounds; spectral subtraction keeps the full band but adds musical noise |
+| 4 | ML enhancement | ML Enhancement | The pipeline stages, feature shape (frames × 192) and mask shape (frames × 32); listen and compare with DSP; mention the training data and the held-out validation table |
+| 5 | Quantitative evaluation | Noise Reduction table and Experiments charts (try 20, 10 and 0 dB) | Input SNR, output SNR, improvement, RMSE, correlation; which method wins depends on the SNR; download the CSV and report |
+| 6 | Practical application | Experiments → applications; *Real* mode with a noisy phone recording | Without a clean reference only statistics are measurable, so judge by ear and by spectrogram |
 
 ---
 
 ## Running the tests
 
 ```bash
-python -m pytest            # 86 tests, about 20 s
+python -m pytest            # 87 tests, about 20 s
 python -m pytest -v tests/test_metrics.py
 ```
 

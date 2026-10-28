@@ -14,7 +14,7 @@ PROJECT_TITLE = (
     "AI-Based Speech Signal Analysis and Noise Reduction "
     "Using FFT, Digital Filtering, and Machine Learning"
 )
-PROJECT_SHORT_NAME = "Speech Enhancement Dashboard"
+PROJECT_SHORT_NAME = "SONORA"          # product name shown in the dashboard
 
 # --------------------------------------------------------------------------
 # Paths

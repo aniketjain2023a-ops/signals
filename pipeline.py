@@ -79,10 +79,13 @@ class PipelineResult:
 
 
 def run(signal: np.ndarray, sr: int, settings: PipelineSettings, enhancer=None,
-        reference: np.ndarray | None = None) -> PipelineResult:
+        reference: np.ndarray | None = None, progress=None) -> PipelineResult:
+    """Run every selected method. ``progress(step_name)``, if given, is called before each step."""
     signal = np.asarray(signal, dtype=np.float64)
+    progress = progress or (lambda _step: None)
     noise = None
     if settings.mode == "simulate":
+        progress("Generating noise")
         reference = signal
         noisy, noise = ns.add_noise_at_snr(signal, settings.snr_db, settings.noise_type, settings.seed)
         input_name = "Noisy"
@@ -96,6 +99,7 @@ def run(signal: np.ndarray, sr: int, settings: PipelineSettings, enhancer=None,
     res = PipelineResult(settings, sr, input_name, noisy, reference, noise)
 
     for method in settings.methods:
+        progress(method)
         t0 = time.perf_counter()
         try:
             if method == METHOD_LOWPASS:
@@ -118,6 +122,7 @@ def run(signal: np.ndarray, sr: int, settings: PipelineSettings, enhancer=None,
         except Exception as exc:  # keep other methods running; report the failure in the UI
             res.errors[method] = f"{type(exc).__name__}: {exc}"
 
+    progress("Computing metrics")
     rows = [metrics.evaluate_output(input_name, noisy, sr, None, reference, noisy)]
     for method, out in res.outputs.items():
         rows.append(metrics.evaluate_output(method, out, sr, res.timings[method], reference, noisy))

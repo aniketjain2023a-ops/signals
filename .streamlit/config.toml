@@ -1,9 +1,36 @@
+# SONORA design system – most styling comes from Streamlit's official theme options.
+# Fonts load from Google Fonts; without internet the app falls back to the system sans-serif.
+
 [theme]
 base = "dark"
-primaryColor = "#3987e5"
-backgroundColor = "#0e1522"
-secondaryBackgroundColor = "#141c2b"
-textColor = "#e6e9ef"
+primaryColor = "#8B5CF6"            # electric violet – primary actions, active states
+backgroundColor = "#080B12"         # app background
+secondaryBackgroundColor = "#111827" # inputs, cards
+textColor = "#E5E7EB"
+borderColor = "#1E293B"
+linkColor = "#A78BFA"
+codeBackgroundColor = "#0D1220"
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+codeFont = "JetBrains Mono:https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+baseRadius = "10px"
+buttonRadius = "10px"
+showWidgetBorder = true
+showSidebarBorder = true
+headingFontWeights = [750, 700, 650, 600, 600, 600]
+greenColor = "#34D399"
+yellowColor = "#F59E0B"
+orangeColor = "#F59E0B"
+redColor = "#F87171"
+blueColor = "#22D3EE"
+violetColor = "#8B5CF6"
+
+[theme.sidebar]
+backgroundColor = "#0B0F1A"
+secondaryBackgroundColor = "#111827"
+borderColor = "#1E293B"
+
+[client]
+toolbarMode = "viewer"   # hides developer-only toolbar items such as "Deploy"
 
 [server]
 maxUploadSize = 50

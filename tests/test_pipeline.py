@@ -66,4 +66,8 @@ def test_app_starts_without_model(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "MODEL_PATH", tmp_path / "none.joblib")
     at = AppTest.from_file("../app.py", default_timeout=60).run()
     assert not at.exception
-    assert any("Upload a speech recording" in i.value for i in at.info)
+    # The Overview page rendered its upload card (the resample toggle lives there) …
+    assert at.toggle(key="resample").value is True
+    # … and the page HTML reports that no model is trained instead of pretending one exists.
+    page_html = " ".join(str(el.proto) for el in at.get("html"))
+    assert "ML model not trained" in page_html
