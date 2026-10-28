@@ -11,6 +11,10 @@ models/*
 !models/README.md
 
 # Datasets and recordings – never commit audio
+*.tar.gz
+*.tgz
+*.zip
+LibriSpeech/
 data/*
 !data/README.md
 *.wav
