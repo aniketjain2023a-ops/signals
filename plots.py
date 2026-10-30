@@ -256,7 +256,10 @@ def filter_response(freqs: np.ndarray, single_db: np.ndarray, cutoff_hz: float, 
     fig.add_hline(y=-3, line=dict(color=AXIS, width=1, dash="dot"))
     fig.update_xaxes(title_text="Frequency (Hz)", type="log" if log_x else "linear")
     fig.update_yaxes(title_text="Gain (dB)", range=[-100, 6])
-    return _layout(fig, height)
+    fig = _layout(fig, height)
+    # Pass band sits along the top, so the legend goes bottom-left, clear of the cut-off label.
+    fig.update_layout(legend=dict(x=0.01, xanchor="left", y=0.04, yanchor="bottom", bgcolor="rgba(13,18,32,0.85)"))
+    return fig
 
 
 def band_energy(rows: list[dict], height: int = 340) -> go.Figure:
